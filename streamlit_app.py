@@ -31,10 +31,26 @@ section[data-testid="stSidebar"] {
 section[data-testid="stSidebar"] * {
     color: #E8E9F3 !important;
 }
+/* 입력 필드 안의 텍스트는 검은색 */
+section[data-testid="stSidebar"] input,
+section[data-testid="stSidebar"] textarea,
+section[data-testid="stSidebar"] .stTextInput input,
+section[data-testid="stSidebar"] .stTextArea textarea,
+section[data-testid="stSidebar"] [data-baseweb="select"] [data-testid="stMarkdownContainer"] p,
+section[data-testid="stSidebar"] [data-baseweb="input"] input,
+section[data-testid="stSidebar"] [data-baseweb="textarea"] textarea,
+section[data-testid="stSidebar"] div[data-baseweb="select"] div,
+section[data-testid="stSidebar"] [role="listbox"] li,
+section[data-testid="stSidebar"] [data-baseweb="select"] span {
+    color: #111111 !important;
+}
 section[data-testid="stSidebar"] .stSelectbox label,
 section[data-testid="stSidebar"] .stTextInput label,
 section[data-testid="stSidebar"] .stDateInput label,
-section[data-testid="stSidebar"] .stTextArea label {
+section[data-testid="stSidebar"] .stTextArea label,
+section[data-testid="stSidebar"] .stTimeInput label,
+section[data-testid="stSidebar"] .stSelectbox label,
+section[data-testid="stSidebar"] .stMultiSelect label {
     color: #A0A3B1 !important;
     font-size: 0.75rem;
     font-weight: 500;
@@ -245,8 +261,10 @@ with st.sidebar:
         s = st.session_state.schedules[st.session_state.edit_idx]
         default_title    = s["title"]
         default_date     = date.fromisoformat(s["date"])
-        default_start    = s.get("start_time", "09:00")
-        default_end      = s.get("end_time",   "10:00")
+        _s = s.get("start_time", "09:00")
+        _e = s.get("end_time",   "10:00")
+        default_start    = datetime.strptime(_s, "%H:%M").time()
+        default_end      = datetime.strptime(_e, "%H:%M").time()
         default_cat      = s.get("category",   "업무")
         default_priority = s.get("priority",   "보통")
         default_desc     = s.get("description","")
@@ -254,8 +272,8 @@ with st.sidebar:
         st.markdown("### ➕ 새 일정 추가")
         default_title    = ""
         default_date     = date.today()
-        default_start    = "09:00"
-        default_end      = "10:00"
+        default_start    = datetime.strptime("09:00", "%H:%M").time()
+        default_end      = datetime.strptime("10:00", "%H:%M").time()
         default_cat      = "업무"
         default_priority = "보통"
         default_desc     = ""
@@ -263,8 +281,8 @@ with st.sidebar:
     title    = st.text_input("제목",        value=default_title,    placeholder="일정 제목을 입력하세요")
     sel_date = st.date_input("날짜",        value=default_date)
     c1, c2   = st.columns(2)
-    start_t  = c1.text_input("시작 시간",   value=default_start,    placeholder="09:00")
-    end_t    = c2.text_input("종료 시간",   value=default_end,      placeholder="10:00")
+    start_t  = c1.time_input("시작 시간", value=default_start)
+    end_t    = c2.time_input("종료 시간", value=default_end)
     category = st.selectbox("카테고리",     list(CATEGORY_MAP.keys()),
                             index=list(CATEGORY_MAP.keys()).index(default_cat))
     priority = st.selectbox("우선순위",     ["높음", "보통", "낮음"],
@@ -278,8 +296,8 @@ with st.sidebar:
             entry = {
                 "title":       title.strip(),
                 "date":        str(sel_date),
-                "start_time":  start_t,
-                "end_time":    end_t,
+                "start_time":  start_t.strftime("%H:%M"),
+                "end_time":    end_t.strftime("%H:%M"),
                 "category":    category,
                 "priority":    priority,
                 "description": desc,
